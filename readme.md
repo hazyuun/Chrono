@@ -19,6 +19,11 @@
 Chrono is a tool that automatically commits in a temporary branch in your git repository every time an event occurs
 (events are customizable), So that you can always rollback to a specific point in time if anything goes wrong. You can squash merge all the temporary commits into one once you are done.
 
+<p align="center">
+    <img src="assets/screenshot.png" width="500"/>
+</p>
+
+
 ## Disclaimer
 This is still in early development stages, if you are going to use it or test it, please use caution.
 Use at your own risk, I am NOT responsible for any of your acts.
