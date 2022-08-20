@@ -67,8 +67,8 @@ events:
     # This triggers every amount of minutes
     - periodic:
 
-        # Every 5 minutes
-        period: 5
+        # Every 60 seconds
+        period: 60
 
         # Commit those files
         files: ["src/", "file.txt"] 
