@@ -1,0 +1,8 @@
+# This is a chrono.yaml example
+
+events:
+  periodic:
+    period: 10
+    files: ["."]
+  save:
+    files: ["."]
