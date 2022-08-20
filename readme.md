@@ -10,9 +10,9 @@
 </p>
 <div align="center">
 
-<img alt="GitHub" src="https://img.shields.io/github/license/hazyuun/chrono?color=green&style=flat-square">
+<img alt="GitHub" src="https://img.shields.io/github/license/hazyuun/Chrono?color=green&style=flat-square">
 
-<img alt="GitHub go.mod Go version" src="https://img.shields.io/github/go-mod/go-version/hazyuun/chrono?style=flat-square">
+<img alt="GitHub go.mod Go version" src="https://img.shields.io/github/go-mod/go-version/hazyuun/Chrono?style=flat-square">
 
 </div>
 
