@@ -20,7 +20,7 @@ Chrono is a tool that automatically commits in a temporary branch in your git re
 (events are customizable), So that you can always rollback to a specific point in time if anything goes wrong. You can squash merge all the temporary commits into one once you are done.
 
 <p align="center">
-    <img src="assets/screenshot.png" width="500"/>
+    <img src="assets/screenshot1.png" width="500"/>
 </p>
 
 
@@ -29,38 +29,46 @@ This is still in early development stages, if you are going to use it or test it
 Use at your own risk, I am NOT responsible for any of your acts.
 
 ## Workflow
-### Create a chrono branch and checkout to it
-Chrono can only push to its own branch in order to avoid messing up your repository, so start by making a branch for chrono
+### Create a chrono session
+
+Create a new session using
 ```bash
-$ git branch chrono
+$ chrono session create session_name
 ```
-git checkout to it
+<b>Important:</b> Please note that this will create a branch from the current HEAD, so make sure it is currently in the commit where you want to create the chrono session.
+
+You can create as many sessions as you want, to list existing sessions you can run the following command 
 ```bash
-$ git checkout chrono
+$ chrono session list
 ```
- 
+<p align="center">
+    <img src="assets/sessions_list.png" width="400"/>
+</p>
+
+
+
 ### Start a chrono session
 Start a chrono session using 
 ```bash
-$ chrono session start
+$ chrono session start session_name
 ```
-from now on, chrono will be automatically committing changes whenever an event occurs, events are customizable using a `chrono.yaml` file (see below for details)
+from now on, chrono will be automatically committing changes to the session's specific branch whenever an event occurs, events are customizable using a `chrono.yaml` file (see below for details)
 
-### Squash merge and delete the chrono branch
+### Squash merge and delete the session
 When done, you can merge (A squash merge is recommended) the chrono branch to your original branch (let's call it original_branch) 
 ```bash
 $ git checkout original_branch
 ```
 ```bash
-$ git merge --squash chrono
+$ git merge --squash chrono/session_name
 ```
-Then if everything is as expected, you can commit the merge and delete the chrono branch
+Then if everything is as expected, you can commit the merge 
 ```bash
 $ git commit -m "Your commit message"
 ```
-
+and delete the session
 ```bash
-$ git branch -D chrono
+$ chrono session delete session_name
 ```
 
 ## Config file

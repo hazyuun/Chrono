@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"chrono/pkg/chrono"
 	"sync"
 	"time"
 
@@ -10,45 +9,126 @@ import (
 )
 
 type Repository struct {
-	Chrono *chrono.Chrono
-	Git    *git.Repository
-	mutex  sync.Mutex
+	Git           *git.Repository
+	sessionBranch string
+	mutex         sync.Mutex
 }
 
 func Open(path string) *Repository {
 	r, err := git.OpenRepository(path)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error")
+		log.Fatal().Err(err).Msg("GIT Error, failed to open GIT repository")
 	}
 
 	return &Repository{
-		Chrono: &chrono.Chrono{},
-		Git:    r,
+		Git: r,
+	}
+}
+
+func (r *Repository) CreateBranch(name string) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	head, err := r.Git.Head()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to get HEAD")
+	}
+
+	commit, err := r.Git.LookupCommit(head.Target())
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to get current commit")
+	}
+
+	log.Info().Str("commit", commit.Message()).Msg("Branching from commit")
+	_, err = r.Git.CreateBranch(name, commit, false)
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to create branch")
+	}
+}
+
+func (r *Repository) DeleteBranch(name string) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	branch, err := r.Git.LookupBranch(name, git.BranchLocal)
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to lookup branch")
+	}
+
+	err = branch.Delete()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to delete branch")
+	}
+}
+
+func (r *Repository) CheckoutBranch(name string) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	branch, err := r.Git.LookupBranch(name, git.BranchLocal)
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to lookup branch")
+	}
+
+	commit, err := r.Git.LookupCommit(branch.Target())
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to get last commit")
+	}
+
+	tree, err := commit.Tree()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to retreive tree")
+	}
+
+	err = r.Git.CheckoutTree(tree, &git.CheckoutOptions{Strategy: git.CheckoutSafe})
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to checkout tree")
+	}
+
+	err = r.Git.SetHead(branch.Reference.Name())
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to set HEAD")
+	}
+
+	r.sessionBranch = name
+}
+
+func (r *Repository) AssertBranchNotChanged() {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	head, err := r.Git.Head()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to get HEAD")
+	}
+
+	branch := head.Branch()
+	currentBranchName, err := branch.Name()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to get branch name")
+	}
+
+	if r.sessionBranch != currentBranchName {
+		log.Fatal().Str("expected", r.sessionBranch).
+			Str("found", currentBranchName).
+			Msg("Branch changed ! Please make sure the branch doesn't get changed while chrono is running")
 	}
 }
 
 func (r *Repository) Commit(paths []string, message string) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
+
 	head, err := r.Git.Head()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error")
+		log.Fatal().Err(err).Msg("GIT Error, failed to get HEAD")
 	}
 
 	branch := head.Branch()
-	branchName, err := branch.Name()
-	if err != nil {
-		log.Fatal().Err(err).Msg("Error")
-	}
-
-	if branchName != "chrono" {
-		log.Error().Msg("Current branch is not \"chrono\" anymore. Please make sure you don't change the branch while chrono is running")
-		log.Fatal().Str("branch", branchName).Msg("Current branch is not \"chrono\" anymore")
-	}
 
 	index, err := r.Git.Index()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error")
+		log.Fatal().Err(err).Msg("GIT Error, failed to retreive index")
 	}
 
 	updatesExist := false
@@ -58,7 +138,7 @@ func (r *Repository) Commit(paths []string, message string) {
 	})
 
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error")
+		log.Fatal().Err(err).Msg("GIT Error, failed to update index")
 	}
 
 	if !updatesExist {
@@ -68,22 +148,22 @@ func (r *Repository) Commit(paths []string, message string) {
 
 	err = index.Write()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error")
+		log.Fatal().Err(err).Msg("GIT Error, failed to write index")
 	}
 
 	oid, err := index.WriteTree()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error")
+		log.Fatal().Err(err).Msg("GIT Error, failed to write tree")
 	}
 
 	tree, err := r.Git.LookupTree(oid)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error")
+		log.Fatal().Err(err).Msg("GIT Error, failed to lookup tree")
 	}
 
 	lastCommit, err := r.Git.LookupCommit(branch.Target())
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error")
+		log.Fatal().Err(err).Msg("GIT Error, failed to lookup commit")
 	}
 
 	sig := &git.Signature{
@@ -94,7 +174,7 @@ func (r *Repository) Commit(paths []string, message string) {
 
 	commitId, err := r.Git.CreateCommit("HEAD", sig, sig, message, tree, lastCommit)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error")
+		log.Fatal().Err(err).Msg("GIT Error, failed to create commit")
 	}
 
 	r.Git.CheckoutHead(&git.CheckoutOpts{

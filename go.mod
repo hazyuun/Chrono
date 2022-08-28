@@ -3,8 +3,10 @@ module chrono
 go 1.19
 
 require (
+	github.com/fatih/color v1.13.0
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/libgit2/git2go/v33 v33.0.9
+	github.com/rodaine/table v1.0.1
 	github.com/rs/zerolog v1.27.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0

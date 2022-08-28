@@ -70,6 +70,8 @@ func Run() {
 			return
 		case msg := <-scheduler.channel:
 			log.Info().Str("event", msg.Sender).Str("msg", msg.Message).Msg("Event")
+
+			scheduler.repository.AssertBranchNotChanged()
 			scheduler.repository.Commit(msg.Paths, msg.Message)
 		}
 	}
