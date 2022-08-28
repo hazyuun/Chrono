@@ -26,6 +26,24 @@ func Open(path string) *Repository {
 	}
 }
 
+func (r *Repository) GetBranchName() string {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	head, err := r.Git.Head()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to get HEAD")
+	}
+
+	branch := head.Branch()
+	currentBranchName, err := branch.Name()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to get branch name")
+	}
+
+	return currentBranchName
+}
+
 func (r *Repository) CreateBranch(name string) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
