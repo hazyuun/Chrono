@@ -60,7 +60,7 @@ When done, you can merge (A squash merge is recommended) the chrono branch to yo
 $ git checkout original_branch
 ```
 ```bash
-$ git merge --squash chrono
+$ git merge --squash chrono/session_name
 ```
 Then if everything is as expected, you can commit the merge 
 ```bash
