@@ -45,7 +45,7 @@ var sessionDeleteCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		chrono.Init(repositoryPath)
 		session.DeleteSession(args[0])
-		log.Info().Str("session", args[0]).Msg("Session created successfully")
+		log.Info().Str("session", args[0]).Msg("Session deleted successfully")
 	},
 }
 
