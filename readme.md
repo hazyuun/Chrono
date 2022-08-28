@@ -35,7 +35,7 @@ Create a new session using
 ```bash
 $ chrono session create session_name
 ```
-<b>Important:</b> Please note that this will create a branch from the current HEAD, so make sure it is currently in the commit where you wanna create the chrono session.
+<b>Important:</b> Please note that this will create a branch from the current HEAD, so make sure it is currently in the commit where you want to create the chrono session.
 
 You can create as many sessions as you want, to list existing sessions you can run the following command 
 ```bash
