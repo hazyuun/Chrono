@@ -54,6 +54,8 @@ $ chrono session start session_name
 ```
 from now on, chrono will be automatically committing changes to the session's specific branch whenever an event occurs, events are customizable using a `chrono.yaml` file (see below for details)
 
+<b>Important:</b> Please note that after you stop running this command, you will still be in the session branch for convinience 
+
 ### Squash merge and delete the session
 When done, you can merge (A squash merge is recommended) the chrono branch to your original branch (let's call it original_branch) 
 ```bash
