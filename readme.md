@@ -28,6 +28,36 @@ Chrono is a tool that automatically commits in a temporary branch in your git re
 This is still in early development stages, if you are going to use it or test it, please use caution.
 Use at your own risk, I am NOT responsible for any of your acts.
 
+## How to install
+
+First, clone the repository using 
+```bash
+git clone https://github.com/hazyuun/Chrono.git
+```
+
+Then `cd` into it
+```bash
+cd Chrono
+```
+
+And install using
+```bash
+go install .
+```
+> Make sure you have `go` installed, if not, you can easily install it using your package manager
+
+The binary will be installed into `~/go/bin/` by default, make sure it is in your `PATH` environment variable, if not, you can add it using 
+
+```bash
+export PATH="$HOME/go/bin/:$PATH"
+```
+> Note that this will add `~/go/bin/` to `PATH` just for the current terminal session, you can add that line to your `~/.profile` for a permanent effect.
+
+Now you can run the following command to check if it is installed correctly
+```bash
+chrono --help
+```
+
 ## Workflow
 ### Create a chrono session
 
