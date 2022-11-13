@@ -76,10 +76,6 @@ $ chrono session list
 
 <img src="assets/sessions_list.png" width="500"/>
 
-```bash
-$
-```
-
 ---
 
 ### Start a Chrono session
