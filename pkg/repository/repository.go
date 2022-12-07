@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"chrono/pkg/config"
 	"sync"
 	"time"
 
@@ -136,6 +137,14 @@ func (r *Repository) Commit(paths []string, message string) {
 		updatesExist = true
 		return nil
 	})
+
+	if config.Cfg.Git != nil && config.Cfg.Git.AutoAdd {
+		log.Info().Msg("Auto-adding all files")
+		index.AddAll([]string{"*"}, git.IndexAddCheckPathspec, func(s1, s2 string) error {
+			updatesExist = true
+			return nil
+		})
+	}
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to update index")
