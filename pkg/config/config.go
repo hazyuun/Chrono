@@ -6,6 +6,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+type CfgGit struct {
+	AutoAdd bool `mapstructure:"auto-add"`
+}
+
 type CfgPeriodic struct {
 	Period int      `mapstructure:"period"`
 	Files  []string `mapstructure:"files"`
@@ -22,6 +26,7 @@ type CfgEvents struct {
 
 type CfgRoot struct {
 	Events *CfgEvents `mapstructure:"events"`
+	Git    *CfgGit    `mapstructure:"git"`
 }
 
 var Cfg CfgRoot

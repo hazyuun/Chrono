@@ -6,3 +6,6 @@ events:
     files: ["."]
   save:
     files: ["."]
+
+git:
+  auto-add: true

@@ -61,7 +61,10 @@ func init() {
 
 	rootCmd.AddCommand(sessionCmd)
 
+	sessionCmd.AddCommand(sessionCreateCmd)
+	sessionCmd.AddCommand(sessionDeleteCmd)
+	sessionCmd.AddCommand(sessionListCmd)
 	sessionCmd.AddCommand(sessionStartCmd)
 	sessionCmd.AddCommand(sessionStopCmd)
-
+	sessionCmd.AddCommand(sessionMergeCmd)
 }
