@@ -67,8 +67,4 @@ func init() {
 	sessionCmd.AddCommand(sessionStartCmd)
 	sessionCmd.AddCommand(sessionStopCmd)
 	sessionCmd.AddCommand(sessionMergeCmd)
-
-	// sessionMergeCmd.LocalFlags().BoolVarP(nil, "cancel", "c", false, "Cancels the squash merge")
-	// sessionMergeCmd.LocalFlags().BoolVarP(nil, "apply", "a", false, "Commit the squash merge")
-
 }
