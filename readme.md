@@ -1,8 +1,7 @@
+
 <div align="center">
+    <img src="assets/logo.png" width="150"/>
     <h1>Chrono</h1>
-    <img src="assets/logo.png" width="200"/>
-</div>
-<div align="center">
     <p><strong>A Git Time Machine</strong></p>
     <img alt="GitHub" src="https://img.shields.io/github/license/hazyuun/Chrono?style=for-the-badge&color=green"/>
     <img alt="GitHub go.mod Go version" src="https://img.shields.io/github/go-mod/go-version/hazyuun/Chrono?style=for-the-badge"/>
@@ -14,15 +13,15 @@
     Chrono <strong>automatically</strong> commits in a temporary branch every time a <i>costumizable</i> event occurs.
 </p>
 <p align="center">
-    <img src="assets/screenshot1.png" width="650"/>
-</p>
-<p align="center">
     So that you can always <strong>rollback</strong> to a specific point in time if anything goes wrong.
 </p>
 <p align="center">
     You can <strong>squash merge</strong> all the temporary commits into one once you are done.
 </p>
 
+<p align="center">
+    <img src="assets/screenshot1.png" width="550"/>
+</p>
 ---
 
 ## Disclaimer
@@ -91,8 +90,20 @@ Events are customizable using a `chrono.yaml` file (see [below](#config-file) fo
 
 ---
 
-### Squash merge and delete the session
-When done, you can merge (A squash merge is recommended) the Chrono branch to your original branch (let's call it original_branch):
+### Merging and deleting the session
+## Using chrono
+When done, you can merge the Chrono branch to your original branch
+```bash
+$ chrono session merge session_name "Commit message"
+```
+
+Then if everything is as expected, you can delete the session:
+```bash
+$ chrono session delete session_name
+```
+---
+## Manually
+You can also merge manually (A squash merge is recommended) the Chrono branch to your original branch (let's call it original_branch):
 ```bash
 $ git checkout original_branch
 $ git merge --squash chrono/session_name
@@ -130,7 +141,10 @@ events:
         # Those files will be committed once they're saved
         files: ["notes.txt"]
         
-# Use files: ["."] if you want all files to be commited
+        # Use files: ["."] if you want all files inside the current directory to be commited (Not recursively, files inside subdirectories won't be committed)
+git:
+    # When true, untracked files will automatically be added
+    auto-add: true
 ```
 
 If you want to exclude some files when using `files: ["."]`, just use your regular `.gitignore` file.
@@ -138,5 +152,4 @@ If you want to exclude some files when using `files: ["."]`, just use your regul
 ---
 
 ## Contributions
-
 Pull requests and issues are welcome !
