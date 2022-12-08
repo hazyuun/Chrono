@@ -163,3 +163,7 @@ func (s *Session) Start() {
 
 	wg.Wait()
 }
+
+func (s *Session) SquashMerge(msg string) {
+	s.r.SquashMerge(s.Info.Source, s.Info.Branch, msg)
+}

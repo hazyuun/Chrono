@@ -204,9 +204,150 @@ func (r *Repository) Commit(paths []string, message string) {
 		log.Fatal().Err(err).Msg("GIT Error, failed to create commit")
 	}
 
-	r.Git.CheckoutHead(&git.CheckoutOpts{
+	r.Git.CheckoutHead(&git.CheckoutOptions{
 		Strategy: git.CheckoutSafe | git.CheckoutRecreateMissing,
 	})
 
 	log.Info().Str("id", commitId.String()).Msg("New git commit")
+}
+
+func (r *Repository) SquashMerge(dst string, src string, msg string) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	// Step 1: Checkout to destination branch
+	branch, err := r.Git.LookupBranch(dst, git.BranchLocal)
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to lookup branch")
+	}
+
+	commit, err := r.Git.LookupCommit(branch.Target())
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to get last commit")
+	}
+
+	tree, err := commit.Tree()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to retreive tree")
+	}
+
+	err = r.Git.CheckoutTree(tree, &git.CheckoutOptions{Strategy: git.CheckoutSafe})
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to checkout tree")
+	}
+
+	err = r.Git.SetHead(branch.Reference.Name())
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to set HEAD")
+	}
+
+	r.sessionBranch = dst
+
+	// Step 2: Get both the destination and source branch for later use
+	srcBranch, err := r.Git.LookupBranch(src, git.BranchLocal)
+	if err != nil {
+		log.Fatal().Err(err).Str("src", src).Msg("GIT Error, Failed to lookup source branch")
+	}
+
+	dstBranch, err := r.Git.LookupBranch(dst, git.BranchLocal)
+	if err != nil {
+		log.Fatal().Err(err).Str("destination", src).Msg("GIT Error, Failed to lookup destination branch")
+	}
+
+	// Step 3: Do merge analysis
+	ac, err := r.Git.AnnotatedCommitFromRef(srcBranch.Reference)
+	if err != nil {
+		log.Fatal().Err(err).Str("src", src).Msg("GIT Error, Failed get annotated commit")
+	}
+
+	head, err := r.Git.Head()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to get HEAD")
+	}
+
+	mergeHeads := make([]*git.AnnotatedCommit, 1)
+	mergeHeads[0] = ac
+	analysis, _, err := r.Git.MergeAnalysis(mergeHeads)
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, Merge analysis failed")
+	}
+
+	if analysis&git.MergeAnalysisNone != 0 || analysis&git.MergeAnalysisUpToDate != 0 {
+		log.Fatal().Msg("GIT Error, Nothing to merge")
+	}
+
+	if analysis&git.MergeAnalysisNormal == 0 {
+		log.Fatal().Msg("GIT Error, Git merge analysis reported a not normal merge")
+	}
+
+	// Step 4: Merge
+	mergeOpts, err := git.DefaultMergeOptions()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, DefaultMergeOptions() failed")
+	}
+
+	mergeOpts.FileFavor = git.MergeFileFavorNormal
+	mergeOpts.TreeFlags = git.MergeTreeFailOnConflict
+
+	checkoutOpts := &git.CheckoutOptions{
+		Strategy: git.CheckoutSafe | git.CheckoutRecreateMissing | git.CheckoutUseTheirs,
+	}
+
+	err = r.Git.Merge(mergeHeads, &mergeOpts, checkoutOpts)
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT error, Merge failed")
+	}
+
+	index, err := r.Git.Index()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to retreive index")
+	}
+
+	if index.HasConflicts() {
+		log.Fatal().Msg("GIT Error, Merge conflicts, please solve them and commit manually")
+	}
+
+	// Step 5: Commit
+	commit, err = r.Git.LookupCommit(dstBranch.Target())
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to lookup commit")
+	}
+
+	sig := &git.Signature{
+		Name:  "Chrono",
+		Email: "Chrono",
+		When:  time.Now(),
+	}
+
+	treeId, err := index.WriteTree()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, Failed to write tree")
+	}
+
+	t, err := r.Git.LookupTree(treeId)
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, Failed to lookup tree")
+	}
+
+	currentCommit, err := r.Git.LookupCommit(head.Target())
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT error, Failed to get current commit")
+	}
+
+	commitId, err := r.Git.CreateCommit("HEAD", sig, sig, msg, t, currentCommit)
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to create commit")
+	}
+
+	r.Git.CheckoutHead(&git.CheckoutOptions{
+		Strategy: git.CheckoutSafe | git.CheckoutRecreateMissing,
+	})
+
+	log.Info().Str("id", commitId.String()).Msg("New git commit")
+
+	// Step 6: Cleanup the state
+	err = r.Git.StateCleanup()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, Failed to cleanup state")
+	}
 }

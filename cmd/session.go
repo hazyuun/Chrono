@@ -98,8 +98,20 @@ var sessionMergeCmd = &cobra.Command{
 	Use:   "merge",
 	Short: "To squash merge all session commits to the original branch",
 	Long:  ``,
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return errors.New("Please specify a session name")
+		} else if len(args) < 2 {
+			return errors.New("Please provide a commit message")
+		}
+
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Fatal().Msg("Not implemented yet")
+		chrono.Init(repositoryPath)
+		s := session.OpenSession(args[0])
+		log.Info().Str("session", args[0]).Msg("Session opened")
+		s.SquashMerge(args[1])
 	},
 }
 
