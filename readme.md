@@ -22,6 +22,7 @@
 <p align="center">
     <img src="assets/screenshot1.png" width="550"/>
 </p>
+
 ---
 
 ## Disclaimer
@@ -31,7 +32,6 @@ If you are going to use it or test it, ***please use with caution***.
 
 Use at your own risk, I am ***NOT*** responsible for any of your acts.
 
----
 
 ## How to install
 
@@ -55,8 +55,6 @@ Now you can run the following command to check if it is installed correctly:
 chrono --help
 ```
 
----
-
 ## Workflow
 ### Create a chrono session
 
@@ -73,9 +71,9 @@ You can create as many sessions as you want, to list existing sessions you can r
 $ chrono session list
 ```
 
-<img src="assets/sessions_list.png" width="500"/>
-
----
+<div align="center">
+    <img src="assets/sessions_list.png" width="500"/>
+</div>
 
 ### Start a Chrono session
 Start a Chrono session using:
