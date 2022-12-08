@@ -21,6 +21,7 @@ import (
 type SessionDef struct {
 	Name   string `json: "Name"`
 	Branch string `json: "Branch"`
+	Source string `json: "Source"`
 }
 
 type Session struct {
@@ -81,6 +82,7 @@ func CreateSession(name string) {
 	sessions[name] = SessionDef{
 		Name:   name,
 		Branch: branchName,
+		Source: r.GetBranchName(),
 	}
 
 	sessionsPath := filepath.Join(chrono.RootPath, chrono.DotChronoDirName, chrono.SessionsFileName)
@@ -160,4 +162,8 @@ func (s *Session) Start() {
 	}
 
 	wg.Wait()
+}
+
+func (s *Session) SquashMerge(msg string) {
+	s.r.SquashMerge(s.Info.Source, s.Info.Branch, msg)
 }

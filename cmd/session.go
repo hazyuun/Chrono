@@ -57,7 +57,7 @@ var sessionListCmd = &cobra.Command{
 		chrono.Init(repositoryPath)
 		sessions := session.GetSessions()
 
-		tbl := table.New("N°", "Session name", "GIT branch")
+		tbl := table.New("N°", "Session name", "Chrono branch", "Source Branch")
 
 		tbl.WithHeaderFormatter(color.New(color.FgBlue, color.Underline, color.Bold).SprintfFunc())
 		tbl.WithFirstColumnFormatter(color.New(color.FgYellow, color.Bold).SprintfFunc())
@@ -65,7 +65,7 @@ var sessionListCmd = &cobra.Command{
 
 		i := 1
 		for _, session := range sessions {
-			tbl.AddRow(i, session.Name, session.Branch)
+			tbl.AddRow(i, session.Name, session.Branch, session.Source)
 			i++
 		}
 
@@ -91,6 +91,27 @@ var sessionStartCmd = &cobra.Command{
 		s := session.OpenSession(args[0])
 		log.Info().Str("session", args[0]).Msg("Session opened")
 		s.Start()
+	},
+}
+
+var sessionMergeCmd = &cobra.Command{
+	Use:   "merge",
+	Short: "To squash merge all session commits to the original branch",
+	Long:  ``,
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return errors.New("Please specify a session name")
+		} else if len(args) < 2 {
+			return errors.New("Please provide a commit message")
+		}
+
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		chrono.Init(repositoryPath)
+		s := session.OpenSession(args[0])
+		log.Info().Str("session", args[0]).Msg("Session opened")
+		s.SquashMerge(args[1])
 	},
 }
 
