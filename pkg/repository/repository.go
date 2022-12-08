@@ -34,6 +34,7 @@ func (r *Repository) GetBranchName() string {
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to get HEAD")
 	}
+	defer head.Free()
 
 	branch := head.Branch()
 	currentBranchName, err := branch.Name()
@@ -52,17 +53,21 @@ func (r *Repository) CreateBranch(name string) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to get HEAD")
 	}
+	defer head.Free()
 
 	commit, err := r.Git.LookupCommit(head.Target())
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to get current commit")
 	}
+	defer commit.Free()
 
 	log.Info().Str("commit", commit.Message()).Msg("Branching from commit")
-	_, err = r.Git.CreateBranch(name, commit, false)
+
+	b, err := r.Git.CreateBranch(name, commit, false)
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to create branch")
 	}
+	defer b.Free()
 }
 
 func (r *Repository) DeleteBranch(name string) {
@@ -73,6 +78,7 @@ func (r *Repository) DeleteBranch(name string) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to lookup branch")
 	}
+	defer branch.Free()
 
 	err = branch.Delete()
 	if err != nil {
@@ -88,16 +94,19 @@ func (r *Repository) CheckoutBranch(name string) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to lookup branch")
 	}
+	defer branch.Free()
 
 	commit, err := r.Git.LookupCommit(branch.Target())
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to get last commit")
 	}
+	defer commit.Free()
 
 	tree, err := commit.Tree()
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to retreive tree")
 	}
+	defer tree.Free()
 
 	err = r.Git.CheckoutTree(tree, &git.CheckoutOptions{Strategy: git.CheckoutSafe})
 	if err != nil {
@@ -120,6 +129,7 @@ func (r *Repository) AssertBranchNotChanged() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to get HEAD")
 	}
+	defer head.Free()
 
 	branch := head.Branch()
 	currentBranchName, err := branch.Name()
@@ -142,13 +152,14 @@ func (r *Repository) Commit(paths []string, message string) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to get HEAD")
 	}
+	defer head.Free()
 
 	branch := head.Branch()
-
 	index, err := r.Git.Index()
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to retreive index")
 	}
+	defer index.Free()
 
 	updatesExist := false
 	err = index.UpdateAll(paths, func(s1, s2 string) error {
@@ -182,16 +193,17 @@ func (r *Repository) Commit(paths []string, message string) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to write tree")
 	}
-
 	tree, err := r.Git.LookupTree(oid)
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to lookup tree")
 	}
+	defer tree.Free()
 
 	lastCommit, err := r.Git.LookupCommit(branch.Target())
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to lookup commit")
 	}
+	defer lastCommit.Free()
 
 	sig := &git.Signature{
 		Name:  "Chrono",
@@ -220,16 +232,19 @@ func (r *Repository) SquashMerge(dst string, src string, msg string) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to lookup branch")
 	}
+	defer branch.Free()
 
 	commit, err := r.Git.LookupCommit(branch.Target())
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to get last commit")
 	}
+	defer commit.Free()
 
 	tree, err := commit.Tree()
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to retreive tree")
 	}
+	defer tree.Free()
 
 	err = r.Git.CheckoutTree(tree, &git.CheckoutOptions{Strategy: git.CheckoutSafe})
 	if err != nil {
@@ -248,22 +263,26 @@ func (r *Repository) SquashMerge(dst string, src string, msg string) {
 	if err != nil {
 		log.Fatal().Err(err).Str("src", src).Msg("GIT Error, Failed to lookup source branch")
 	}
+	defer srcBranch.Free()
 
 	dstBranch, err := r.Git.LookupBranch(dst, git.BranchLocal)
 	if err != nil {
 		log.Fatal().Err(err).Str("destination", src).Msg("GIT Error, Failed to lookup destination branch")
 	}
+	defer dstBranch.Free()
 
 	// Step 3: Do merge analysis
 	ac, err := r.Git.AnnotatedCommitFromRef(srcBranch.Reference)
 	if err != nil {
 		log.Fatal().Err(err).Str("src", src).Msg("GIT Error, Failed get annotated commit")
 	}
+	defer ac.Free()
 
 	head, err := r.Git.Head()
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to get HEAD")
 	}
+	defer head.Free()
 
 	mergeHeads := make([]*git.AnnotatedCommit, 1)
 	mergeHeads[0] = ac
@@ -302,6 +321,7 @@ func (r *Repository) SquashMerge(dst string, src string, msg string) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to retreive index")
 	}
+	defer index.Free()
 
 	if index.HasConflicts() {
 		log.Fatal().Msg("GIT Error, Merge conflicts, please solve them and commit manually")
@@ -312,6 +332,7 @@ func (r *Repository) SquashMerge(dst string, src string, msg string) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, failed to lookup commit")
 	}
+	defer commit.Free()
 
 	sig := &git.Signature{
 		Name:  "Chrono",
@@ -328,11 +349,13 @@ func (r *Repository) SquashMerge(dst string, src string, msg string) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, Failed to lookup tree")
 	}
+	defer t.Free()
 
 	currentCommit, err := r.Git.LookupCommit(head.Target())
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT error, Failed to get current commit")
 	}
+	defer currentCommit.Free()
 
 	commitId, err := r.Git.CreateCommit("HEAD", sig, sig, msg, t, currentCommit)
 	if err != nil {
