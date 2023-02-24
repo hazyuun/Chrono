@@ -22,8 +22,17 @@ jobs:
         go-version: 1.19
 
     - name: Install libgit2
-      run: sudo apt update && sudo apt install -y libgit2
-
+      run: |
+        sudo apt update
+        sudo apt install -y wget
+        wget https://github.com/libgit2/libgit2/archive/refs/tags/v1.5.1.tar.gz && \
+        tar xzf v1.5.1.tar.gz && \
+        cd libgit2-1.5.1/ && \
+        cmake . && \
+        make && \
+        make install
+        ldconfig
+        
     - name: Build
       run: go build -v ./...
 
