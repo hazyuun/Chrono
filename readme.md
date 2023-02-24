@@ -2,9 +2,12 @@
 <div align="center">
     <img src="assets/logo.png" width="150"/>
     <h1>Chrono</h1>
-    <p><strong>A Git Time Machine</strong></p>
-    <img alt="GitHub" src="https://img.shields.io/github/license/hazyuun/Chrono?style=for-the-badge&color=green"/>
-    <img alt="GitHub go.mod Go version" src="https://img.shields.io/github/go-mod/go-version/hazyuun/Chrono?style=for-the-badge"/>
+    <p><strong>A Git Time Machine</strong></p>    
+    <a href="https://github.com/hazyuun/Chrono/actions/workflows/build.yml">
+        <img alt="Build" src="https://github.com/hazyuun/Chrono/actions/workflows/build.yml/badge.svg?branch=dev" />
+    </a>
+    <img alt="GitHub go.mod Go version" src="https://img.shields.io/github/go-mod/go-version/hazyuun/Chrono?style=flat"/>
+    <img alt="GitHub" src="https://img.shields.io/github/license/hazyuun/Chrono?style=flat&color=green"/>
 </div>
 
 ---
