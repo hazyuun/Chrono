@@ -30,8 +30,8 @@ jobs:
         cd libgit2-1.5.1/ && \
         cmake . && \
         make && \
-        make install
-        ldconfig
+        sudo make install
+        sudo ldconfig
         
     - name: Build
       run: go build -v ./...
