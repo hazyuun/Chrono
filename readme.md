@@ -7,7 +7,7 @@
         <img alt="Build" src="https://github.com/hazyuun/Chrono/actions/workflows/build.yml/badge.svg?branch=dev" />
     </a>
     <img alt="GitHub go.mod Go version" src="https://img.shields.io/github/go-mod/go-version/hazyuun/Chrono?style=flat"/>
-    <img alt="GitHub" src="https://img.shields.io/github/license/hazyuun/Chrono?style=flat&color=green"/>
+    <img alt="GitHub" src="https://img.shields.io/github/license/hazyuun/Chrono?style=flat&color=orange"/>
 </div>
 
 ---
