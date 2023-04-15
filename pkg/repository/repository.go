@@ -15,6 +15,12 @@ type Repository struct {
 	mutex         sync.Mutex
 }
 
+type CommitInfo struct {
+	Hash    string
+	Author  string
+	Message string
+}
+
 func Open(path string) *Repository {
 	r, err := git.OpenRepository(path)
 	if err != nil {
@@ -144,7 +150,7 @@ func (r *Repository) AssertBranchNotChanged() {
 	}
 }
 
-func (r *Repository) Commit(paths []string, message string) {
+func (r *Repository) Commit(paths []string, author string, message string) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -206,7 +212,7 @@ func (r *Repository) Commit(paths []string, message string) {
 	defer lastCommit.Free()
 
 	sig := &git.Signature{
-		Name:  "Chrono",
+		Name:  author,
 		Email: "Chrono",
 		When:  time.Now(),
 	}
@@ -373,4 +379,52 @@ func (r *Repository) SquashMerge(dst string, src string, msg string) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("GIT Error, Failed to cleanup state")
 	}
+}
+
+func (r *Repository) GetCommits(branchName string) []CommitInfo {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	branch, err := r.Git.LookupBranch(branchName, git.BranchLocal)
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to lookup branch")
+	}
+	defer branch.Free()
+
+	commit, err := r.Git.LookupCommit(branch.Target())
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, failed to get last commit")
+	}
+	defer commit.Free()
+
+	k, err := commit.Owner().Walk()
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, Walk() failed")
+	}
+
+	err = k.Push(commit.Id())
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, Push() failed")
+	}
+
+	commits := []CommitInfo{}
+	err = k.Iterate(func(c *git.Commit) bool {
+		if c.Author().Email != "Chrono" {
+			return true
+		}
+
+		commits = append(commits, CommitInfo{
+			Hash:    c.Id().String(),
+			Author:  c.Author().Name,
+			Message: c.Message(),
+		})
+		//log.Debug().Str("msg", c.Message()).Str("hash", c.Id().String()).Msg("Debug")
+		return true
+	})
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("GIT Error, Iterate() failed")
+	}
+
+	return commits
 }
