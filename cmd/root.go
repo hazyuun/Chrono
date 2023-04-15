@@ -67,4 +67,5 @@ func init() {
 	sessionCmd.AddCommand(sessionStartCmd)
 	sessionCmd.AddCommand(sessionStopCmd)
 	sessionCmd.AddCommand(sessionMergeCmd)
+	sessionCmd.AddCommand(sessionShowCmd)
 }

@@ -123,3 +123,34 @@ var sessionStopCmd = &cobra.Command{
 		log.Fatal().Msg("Not implemented yet")
 	},
 }
+
+var sessionShowCmd = &cobra.Command{
+	Use:   "show",
+	Short: "Shows git commits specific to a session",
+	Long:  ``,
+
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return errors.New("Please specify a session name")
+		}
+
+		return nil
+	},
+
+	Run: func(cmd *cobra.Command, args []string) {
+		chrono.Init(repositoryPath)
+		commits := session.GetSessionCommits(args[0])
+
+		tbl := table.New("Hash", "Author", "Message")
+
+		tbl.WithHeaderFormatter(color.New(color.FgBlue, color.Underline, color.Bold).SprintfFunc())
+		tbl.WithFirstColumnFormatter(color.New(color.FgYellow, color.Bold).SprintfFunc())
+		tbl.WithPadding(8)
+
+		for _, c := range commits {
+			tbl.AddRow(c.Hash[:8], c.Author, c.Message)
+		}
+
+		tbl.Print()
+	},
+}

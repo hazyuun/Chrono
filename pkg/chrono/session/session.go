@@ -29,6 +29,26 @@ type Session struct {
 	r    *repository.Repository
 }
 
+func GetSessionCommits(sessionName string) []repository.CommitInfo {
+	sessionsPath := filepath.Join(chrono.RootPath, chrono.DotChronoDirName, chrono.SessionsFileName)
+
+	file, err := os.ReadFile(sessionsPath)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Error")
+	}
+
+	sessions := make(map[string]SessionDef)
+	err = json.Unmarshal(file, &sessions)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Error")
+	}
+
+	r := repository.Open(chrono.RootPath)
+	commits := r.GetCommits(sessions[sessionName].Branch)
+
+	return commits
+}
+
 func GetSessions() map[string]SessionDef {
 	sessionsPath := filepath.Join(chrono.RootPath, chrono.DotChronoDirName, chrono.SessionsFileName)
 
